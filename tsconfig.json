@@ -1,10 +1,14 @@
 {
   "compilerOptions": {
     "moduleResolution": "node",
-    "sourceMap": false,
+    "sourceMap": true,
     "module": "commonjs",
     "removeComments": true,
     "noImplicitAny": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "forceConsistentCasingInFileNames": true,
+
     "strictPropertyInitialization": true,
     "strictNullChecks": true,
     "esModuleInterop": true,
