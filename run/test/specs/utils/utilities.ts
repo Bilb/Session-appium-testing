@@ -1,4 +1,4 @@
-import { wd, TouchAction } from "wd";
+import * as wd from "wd";
 
 import { exec } from "child_process";
 import { getAdbFullPath } from "./binaries";
@@ -27,10 +27,12 @@ export const inputText = async (
   return await selector.type(text);
 };
 
-export const longPress = async (device: any, accessibilityId: any) => {
+export const longPress = async (
+  device: wd.PromiseWebdriver,
+  accessibilityId: string
+) => {
   const selector = await device.elementByAccessibilityId(accessibilityId);
-  console.error("wd", wd);
-  let action = new TouchAction(device);
+  const action = new wd.TouchAction(device);
   action.longPress({ el: selector });
   await action.perform();
 };
@@ -94,14 +96,14 @@ export const installAppToDeviceName = async (
   );
   await sleepFor(500);
 
-  runScriptAndLog(
-    `${adb} -s ${emulatorName} shell am start io.appium.uiautomator2.server`
-  );
-  await sleepFor(500);
+  // runScriptAndLog(
+  //   `${adb} -s ${emulatorName} shell am start io.appium.uiautomator2.server`
+  // );
+  // await sleepFor(500);
 
-  runScriptAndLog(
-    `${adb} -s ${emulatorName} shell am start io.appium.uiautomator2.server.test`
-  );
+  // runScriptAndLog(
+  //   `${adb} -s ${emulatorName} shell am start io.appium.uiautomator2.server.test`
+  // );
 
   await sleepFor(500);
   runScriptAndLog(`${adb} -s ${emulatorName} install -g -t ${appFullPath}`);

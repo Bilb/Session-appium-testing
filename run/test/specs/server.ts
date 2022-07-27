@@ -1,6 +1,6 @@
 import { getAndroidBinariesRoot } from "./utils/binaries";
 
-import * as appmium from "appium";
+import { main as appmiumMain } from "appium";
 import * as wd from "wd";
 import {
   clickOnElement,
@@ -8,10 +8,11 @@ import {
   installAppToDeviceName,
 } from "./utils/utilities";
 import { newUser } from "./utils/create_account";
+import { DesiredCapabilities } from "@wdio/types/build/Capabilities";
 
 const androidAppFullPath = `${getAndroidBinariesRoot()}/session-1.13.1-x86.apk`;
 
-const sharedCapabilities = {
+const sharedCapabilities: DesiredCapabilities = {
   platformName: "Android",
   platformVersion: "11",
   app: androidAppFullPath,
@@ -20,38 +21,42 @@ const sharedCapabilities = {
   automationName: "UiAutomator2",
   browserName: "",
   newCommandTimeout: 300000,
-  // allowTestPackages: true,
-  // fullReset: true,
 };
 
-const capabilities1 = {
+const emulator1Udid = "emulator-5554";
+const emulator2Udid = "emulator-5556";
+
+const capabilities1: DesiredCapabilities = {
   ...sharedCapabilities,
-  udid: "emulator-5554",
+  udid: emulator1Udid,
 };
-const capabilities2 = {
+const capabilities2: DesiredCapabilities = {
   ...sharedCapabilities,
-  udid: "emulator-5556",
+  udid: emulator2Udid,
 };
 
 describe("Start server", () => {
   it("test should open server", async () => {
     // first we want to install the app on each device with our custom call to run it
     await Promise.all([
-      installAppToDeviceName(androidAppFullPath, "emulator-5554"),
-      installAppToDeviceName(androidAppFullPath, "emulator-5556"),
+      installAppToDeviceName(androidAppFullPath, emulator1Udid),
+      installAppToDeviceName(androidAppFullPath, emulator2Udid),
     ]);
 
-    let server = await appmium.main({
+    const server = await appmiumMain({
       port: 4723,
       host: "localhost",
       setTimeout: 30000,
     });
 
-    const device1 = await wd.promiseChainRemote("localhost", 4723);
-    const device2 = await wd.promiseChainRemote("localhost", 4723);
-
-    await device1.init(capabilities1);
-    await device2.init(capabilities2);
+    const [device1, device2] = await Promise.all([
+      await wd.promiseChainRemote("localhost", 4723),
+      await wd.promiseChainRemote("localhost", 4723),
+    ]);
+    await Promise.all([
+      device1.init(capabilities1),
+      device2.init(capabilities2),
+    ]);
 
     const [_userA, userB] = await Promise.all([
       newUser(device1, "User A"),
@@ -102,6 +107,9 @@ describe("Start server", () => {
     await device1.quit();
     await device2.quit();
 
-    await server.close;
+    console.info("waiting server close");
+
+    await server.close();
+    console.info(" server closed");
   }).timeout(300000);
 });
